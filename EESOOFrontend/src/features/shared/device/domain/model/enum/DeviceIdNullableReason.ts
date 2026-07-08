@@ -1,0 +1,7 @@
+export enum DeviceIdNullableReason {
+    NOT_SUPPORTED = "NOT_SUPPORTED",
+    OS_RESTRICTED = "OS_RESTRICTED",
+    SERVICES_MISSING = "SERVICES_MISSING",
+    ERROR = "ERROR",
+    UNKNOWN = "UNKNOWN",
+}

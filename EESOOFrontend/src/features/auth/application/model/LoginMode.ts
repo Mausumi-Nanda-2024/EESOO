@@ -1,0 +1,1 @@
+export type LoginMode  = 'KNOWN_IDENTITY' | 'MANUAL';
