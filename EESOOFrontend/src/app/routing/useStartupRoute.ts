@@ -63,7 +63,12 @@ export function useStartupRoute() {
         return;
       }
 
-      if (!checkResult.linked && checkResult.reason === 'DEVICE_NOT_FOUND') {
+      const deviceMissingInBackend =
+        !checkResult.linked &&
+        (checkResult.reason === 'DEVICE_NOT_FOUND' ||
+          checkResult.reason === 'DEVICE_NOT_REGISTERED');
+
+      if (deviceMissingInBackend) {
         setRoute({
           name: 'BOOTSTRAPPING',
           message: 'Restoring device connection...',

@@ -12,21 +12,21 @@ export class CheckDeviceLinkHttpMapper {
 
     static toResponse(dto: CheckDeviceLinkHttpResponseDTO): any {
         if (dto.status === 'LINKED') {
-            if (!dto.userId || !dto.username || !dto.phoneNumber) {
+            if (!dto.user_id || !dto.username || !dto.phone_number) {
                 throw new Error('Invalid response: missing user data for linked device');
             }
 
             return {
                 linked: true,
-                userId: dto.userId,
+                userId: dto.user_id,
                 username: dto.username,
-                phoneNumber: dto.phoneNumber
+                phoneNumber: dto.phone_number
             };
         }
 
         return {
             linked: false,
-            reason: dto.reason
+            reason: dto.failure_reason
         };
     }
 

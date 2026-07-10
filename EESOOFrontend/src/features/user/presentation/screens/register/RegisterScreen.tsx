@@ -10,14 +10,16 @@ import {
 } from 'react-native';
 import { useRegisterViewModel } from './hooks/useProvideRegisterViewModel';
 import { RegisterViewModel } from './viewModel/RegisterViewModel';
+import { RegisterUserResponseDTO } from '../../../application/register/dto/RegisterUserResponseDTO';
 
 type Props = {
   deviceReady: boolean;
   deviceMessage: string;
+   onRegistered: (response: RegisterUserResponseDTO) => void;
 };
 
-export default function RegisterScreen({ deviceReady, deviceMessage }: Props) {
-  const vm: RegisterViewModel = useRegisterViewModel();
+export default function RegisterScreen({ deviceReady, deviceMessage, onRegistered }: Props) {
+  const vm: RegisterViewModel = useRegisterViewModel(onRegistered);
 
   const [isPinVisible, setIsPinVisible] = useState(false);
   const [isConfirmPinVisible, setIsConfirmPinVisible] = useState(false);

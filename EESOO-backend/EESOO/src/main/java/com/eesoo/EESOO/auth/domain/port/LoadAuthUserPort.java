@@ -6,7 +6,7 @@ import com.eesoo.EESOO.auth.domain.model.dto.AuthUserSnapshot;
 
 public interface LoadAuthUserPort {
     
-    Optional<AuthUserSnapshot> findByPhoneNumber(String username);
+    Optional<AuthUserSnapshot> findByPhoneNumber(String phoneNumber);
 }
     
 

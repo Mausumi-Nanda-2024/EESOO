@@ -17,7 +17,18 @@ export type AppRoute =
       deviceMessage: string;
     }
   | {
+    name: 'REGISTER_SUCCESS';
+    username: string;
+  }
+
+  | {
       name: 'LOGIN';
       mode: LoginMode;
       knownIdentity: KnownIdentity;
-    };
+    }
+
+  | {
+    name: 'LOGIN';
+    mode: 'MANUAL';
+    
+  };

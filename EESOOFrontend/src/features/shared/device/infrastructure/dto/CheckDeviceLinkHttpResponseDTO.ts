@@ -1,7 +1,7 @@
 export interface CheckDeviceLinkHttpResponseDTO {
     status: "LINKED" | "NOT_LINKED";
-    userId?: string;
+    user_id?: string;
     username?: string;
-    phoneNumber?: string;
-    reason?: string; 
+    phone_number?: string;
+    failure_reason?: string;
 }
