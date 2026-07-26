@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
-import com.eesoo.EESOO.user.domain.model.enums.UserStatus;
 
 @Entity
 @Table(name = "users")
@@ -39,9 +38,8 @@ public class UserJpaEntity {
     @Column(name = "phone_number", unique = true , nullable = false)
     private String phoneNumber;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private UserStatus status;
+    private String status;
 
     @Column(name = "user_registered_at", nullable = false)
     private LocalDateTime userRegisteredAt;

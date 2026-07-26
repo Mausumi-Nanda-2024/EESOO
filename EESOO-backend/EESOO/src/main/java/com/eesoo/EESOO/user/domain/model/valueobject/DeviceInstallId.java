@@ -1,7 +1,10 @@
 package com.eesoo.EESOO.user.domain.model.valueobject;
 
+
 import java.util.Objects;
 import java.util.UUID;
+
+import com.github.f4b6a3.uuid.UuidCreator;
 
 public final class DeviceInstallId {
 
@@ -15,7 +18,9 @@ public final class DeviceInstallId {
     }
 
     public static DeviceInstallId create() {
-        return new DeviceInstallId(UUID.randomUUID());
+        return new DeviceInstallId(
+                UuidCreator.getTimeOrderedEpoch()
+        );
     }
 
     public static DeviceInstallId of(UUID value) {

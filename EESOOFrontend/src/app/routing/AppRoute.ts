@@ -20,15 +20,12 @@ export type AppRoute =
     name: 'REGISTER_SUCCESS';
     username: string;
   }
-
   | {
       name: 'LOGIN';
-      mode: LoginMode;
+      mode: Extract<LoginMode, 'KNOWN_IDENTITY'>;
       knownIdentity: KnownIdentity;
     }
-
   | {
-    name: 'LOGIN';
-    mode: 'MANUAL';
-    
-  };
+      name: 'LOGIN';
+      mode: Extract<LoginMode, 'MANUAL'>;
+    };

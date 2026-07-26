@@ -3,11 +3,14 @@ package com.eesoo.EESOO.user.infrastructure.auth;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.stereotype.Component;
+
 import com.eesoo.EESOO.auth.domain.port.PinVerificationPort;
 import com.eesoo.EESOO.user.domain.model.entity.User;
 import com.eesoo.EESOO.user.domain.repository.UserRepository;
 import com.eesoo.EESOO.user.domain.service.PinEncoder;
 
+@Component
 public class PinVerificationAdapter implements PinVerificationPort {
 
     private final UserRepository userRepository;

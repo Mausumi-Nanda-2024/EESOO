@@ -13,7 +13,7 @@ import com.eesoo.EESOO.user.domain.model.enums.DeviceIdNullableReason;
 import com.eesoo.EESOO.user.domain.model.valueobject.DeviceId;
 import com.eesoo.EESOO.user.domain.model.valueobject.InstallId;
 import com.eesoo.EESOO.user.domain.repository.DeviceInstallRepository;
-import com.eesoo.EESOO.user.domain.service.TimeProvider;
+import com.eesoo.EESOO.shared.domain.time.TimeProvider;
 
 @Service
 public class StoreDeviceCommandHandler implements CommandHandler<StoreDeviceCommand, StoreDeviceResultDTO> {

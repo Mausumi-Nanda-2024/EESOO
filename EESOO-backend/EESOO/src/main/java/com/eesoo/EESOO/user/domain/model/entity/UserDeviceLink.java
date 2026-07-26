@@ -8,7 +8,7 @@ import com.eesoo.EESOO.user.domain.model.enums.LinkedDeviceType;
 import com.eesoo.EESOO.user.domain.model.valueobject.DeviceInstallId;
 import com.eesoo.EESOO.user.domain.model.valueobject.UserDeviceLinkId;
 import com.eesoo.EESOO.user.domain.model.valueobject.UserId;
-import com.eesoo.EESOO.user.domain.service.TimeProvider;
+import com.eesoo.EESOO.shared.domain.time.TimeProvider;
 
 public class UserDeviceLink {
 
