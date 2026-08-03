@@ -3,10 +3,13 @@ package com.eesoo.EESOO.user.infrastructure.auth;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.stereotype.Component;
+
 import com.eesoo.EESOO.auth.domain.port.LoadDeviceInstallPort;
 import com.eesoo.EESOO.user.domain.model.valueobject.InstallId;
 import com.eesoo.EESOO.user.domain.repository.DeviceInstallRepository;
 
+@Component
 public class LoadDeviceInstallAdapter implements LoadDeviceInstallPort{
 
     private final DeviceInstallRepository deviceInstallRepository;

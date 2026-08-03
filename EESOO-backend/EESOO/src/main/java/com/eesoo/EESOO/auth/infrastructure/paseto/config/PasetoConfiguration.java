@@ -13,12 +13,12 @@ import com.eesoo.EESOO.auth.infrastructure.paseto.PasetoKeyProvider;
 public class PasetoConfiguration {
 
     @Bean
-     public PasetoKeyProvider pasetoKeyProvider(
+    public PasetoKeyProvider pasetoKeyProvider(
             PasetoProperties properties
     ) {
         return new PasetoKeyProvider(
                 properties.getLocalKeyBase64()
         );
     }
-    
+
 }

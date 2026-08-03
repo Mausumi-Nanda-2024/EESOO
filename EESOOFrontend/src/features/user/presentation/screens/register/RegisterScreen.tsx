@@ -15,10 +15,16 @@ import { RegisterUserResponseDTO } from '../../../application/register/dto/Regis
 type Props = {
   deviceReady: boolean;
   deviceMessage: string;
-   onRegistered: (response: RegisterUserResponseDTO) => void;
+  onRegistered: (response: RegisterUserResponseDTO) => void;
+  onLoginPress?: () => void;
 };
 
-export default function RegisterScreen({ deviceReady, deviceMessage, onRegistered }: Props) {
+export default function RegisterScreen({
+  deviceReady,
+  deviceMessage,
+  onRegistered,
+  onLoginPress,
+}: Props) {
   const vm: RegisterViewModel = useRegisterViewModel(onRegistered);
 
   const [isPinVisible, setIsPinVisible] = useState(false);
@@ -246,6 +252,18 @@ export default function RegisterScreen({ deviceReady, deviceMessage, onRegistere
               {vm.loading ? 'Creating...' : 'Create Account'}
             </Text>
           </Pressable>
+
+          {onLoginPress ? (
+            <Pressable
+              onPress={onLoginPress}
+              disabled={vm.loading}
+              className="mt-3 items-center px-4 py-2"
+            >
+              <Text className="text-sm font-semibold text-teal-700">
+                Already have an account? Login
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

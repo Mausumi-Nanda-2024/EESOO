@@ -57,8 +57,7 @@ class PasetoTokenGenerationAdapterTest {
                         "eesoo",
                         "eesoo-api",
                         "eesoo-auth-refresh",
-                        ACCESS_TOKEN_DURATION,
-                        Duration.ofDays(30)
+                        ACCESS_TOKEN_DURATION
                 );
 
         clock = Clock.fixed(NOW, ZoneOffset.UTC);

@@ -1,165 +1,104 @@
 import React, { useEffect } from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import { useStartupRoute } from '../src/app/routing/useStartupRoute';
+import { appStartupCoordinator } from '../src/app/startup/AppStartupConfig';
 import { AppRoute } from '../src/app/routing/AppRoute';
-import {
-  checkDeviceLinkUseCase,
-  storeDeviceUseCase,
-} from '../src/features/shared/device/infrastructure/config/DeviceInfrastructureConfig';
+import { useStartupRoute } from '../src/app/routing/useStartupRoute';
 
-jest.mock('../src/features/shared/device/infrastructure/config/DeviceInfrastructureConfig', () => ({
-  storeDeviceUseCase: {
-    storeDevice: jest.fn(),
-    forceStoreDevice: jest.fn(),
-  },
-  checkDeviceLinkUseCase: {
+jest.mock('../src/app/startup/AppStartupConfig', () => ({
+  appStartupCoordinator: {
     execute: jest.fn(),
   },
 }));
 
-const mockedStoreDeviceUseCase = storeDeviceUseCase as jest.Mocked<
-  typeof storeDeviceUseCase
->;
-const mockedCheckDeviceLinkUseCase = checkDeviceLinkUseCase as jest.Mocked<
-  typeof checkDeviceLinkUseCase
->;
+const mockedAppStartupCoordinator =
+  appStartupCoordinator as jest.Mocked<
+    typeof appStartupCoordinator
+  >;
 
-function StartupRouteProbe({ onRoute }: { onRoute: (route: AppRoute) => void }) {
-  const route = useStartupRoute();
+interface StartupRouteSnapshot {
+  route: AppRoute;
+  retryStartup: () => void;
+}
+
+function StartupRouteProbe({
+  onSnapshot,
+}: {
+  onSnapshot: (snapshot: StartupRouteSnapshot) => void;
+}) {
+  const startupRoute = useStartupRoute();
 
   useEffect(() => {
-    onRoute(route);
-  }, [onRoute, route]);
+    onSnapshot(startupRoute);
+  }, [onSnapshot, startupRoute]);
 
   return null;
 }
 
-async function flushStartupRouteUpdates() {
+async function flushUpdates() {
   await Promise.resolve();
   await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
-}
-
-async function renderStartupRoute() {
-  const routes: AppRoute[] = [];
-
-  await ReactTestRenderer.act(async () => {
-    ReactTestRenderer.create(
-      <StartupRouteProbe onRoute={route => routes.push(route)} />,
-    );
-    await flushStartupRouteUpdates();
-  });
-
-  return routes;
-}
-
-function createDeferred<T>() {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>(promiseResolve => {
-    resolve = promiseResolve;
-  });
-
-  return { promise, resolve };
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
 });
 
-test('fresh device with no linked user routes to register', async () => {
-  mockedStoreDeviceUseCase.storeDevice.mockResolvedValue(true);
-  mockedCheckDeviceLinkUseCase.execute.mockResolvedValue({
-    linked: false,
-    reason: 'NOT_LINKED',
+test('returns the route selected by the startup coordinator', async () => {
+  const snapshots: StartupRouteSnapshot[] = [];
+  const selectedRoute: AppRoute = {
+    name: 'AUTH_ENTRY',
+  };
+
+  mockedAppStartupCoordinator.execute.mockResolvedValue(
+    selectedRoute,
+  );
+
+  await ReactTestRenderer.act(async () => {
+    ReactTestRenderer.create(
+      <StartupRouteProbe
+        onSnapshot={snapshot => snapshots.push(snapshot)}
+      />,
+    );
+    await flushUpdates();
   });
 
-  const routes = await renderStartupRoute();
-
-  expect(routes.at(-1)).toEqual({
-    name: 'REGISTER',
-    deviceReady: true,
-    deviceMessage: '',
+  expect(snapshots[0].route).toEqual({
+    name: 'BOOTSTRAPPING',
+    message: 'Preparing application...',
   });
+  expect(snapshots.at(-1)?.route).toEqual(selectedRoute);
 });
 
-test('linked device routes to login with known identity', async () => {
-  mockedStoreDeviceUseCase.storeDevice.mockResolvedValue(true);
-  mockedCheckDeviceLinkUseCase.execute.mockResolvedValue({
-    linked: true,
-    userId: 'user-1',
-    username: 'testuser',
-    phoneNumber: '9876543210',
-  });
+test('runs startup again when retryStartup is called', async () => {
+  const snapshots: StartupRouteSnapshot[] = [];
 
-  const routes = await renderStartupRoute();
-
-  expect(routes.at(-1)).toEqual({
-    name: 'LOGIN',
-    mode: 'KNOWN_IDENTITY',
-    knownIdentity: {
-      userId: 'user-1',
-      username: 'testuser',
-      phoneNumber: '9876543210',
-    },
-  });
-});
-
-test('device not found restores device then checks link again', async () => {
-  const forceStoreResult = createDeferred<boolean>();
-  const routes: AppRoute[] = [];
-
-  mockedStoreDeviceUseCase.storeDevice.mockResolvedValue(true);
-  mockedStoreDeviceUseCase.forceStoreDevice.mockReturnValue(forceStoreResult.promise);
-  mockedCheckDeviceLinkUseCase.execute
+  mockedAppStartupCoordinator.execute
     .mockResolvedValueOnce({
-      linked: false,
-      reason: 'DEVICE_NOT_FOUND',
+      name: 'SESSION_RESTORE_ERROR',
+      message: 'Network unavailable.',
     })
     .mockResolvedValueOnce({
-      linked: false,
-      reason: 'NOT_LINKED',
+      name: 'AUTH_ENTRY',
     });
 
   await ReactTestRenderer.act(async () => {
     ReactTestRenderer.create(
-      <StartupRouteProbe onRoute={route => routes.push(route)} />,
+      <StartupRouteProbe
+        onSnapshot={snapshot => snapshots.push(snapshot)}
+      />,
     );
-    await flushStartupRouteUpdates();
+    await flushUpdates();
   });
-
-  expect(routes).toContainEqual({
-    name: 'BOOTSTRAPPING',
-    message: 'Restoring device connection...',
-  });
-  expect(mockedStoreDeviceUseCase.forceStoreDevice).toHaveBeenCalledTimes(1);
 
   await ReactTestRenderer.act(async () => {
-    forceStoreResult.resolve(true);
-    await flushStartupRouteUpdates();
+    snapshots.at(-1)?.retryStartup();
+    await flushUpdates();
   });
 
-  expect(mockedCheckDeviceLinkUseCase.execute).toHaveBeenCalledTimes(2);
-  expect(routes.at(-1)).toEqual({
-    name: 'REGISTER',
-    deviceReady: true,
-    deviceMessage: '',
-  });
-});
-
-test('missing device id routes to register without force storing', async () => {
-  mockedStoreDeviceUseCase.storeDevice.mockResolvedValue(true);
-  mockedCheckDeviceLinkUseCase.execute.mockResolvedValue({
-    linked: false,
-    reason: 'DEVICE_ID_MISSING',
-  });
-
-  const routes = await renderStartupRoute();
-
-  expect(mockedStoreDeviceUseCase.forceStoreDevice).not.toHaveBeenCalled();
-  expect(routes.at(-1)).toEqual({
-    name: 'REGISTER',
-    deviceReady: true,
-    deviceMessage: '',
+  expect(mockedAppStartupCoordinator.execute).toHaveBeenCalledTimes(
+    2,
+  );
+  expect(snapshots.at(-1)?.route).toEqual({
+    name: 'AUTH_ENTRY',
   });
 });

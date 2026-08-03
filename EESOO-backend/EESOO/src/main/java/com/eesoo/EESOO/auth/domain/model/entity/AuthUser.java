@@ -23,5 +23,7 @@ public class AuthUser {
 
     public UUID getUserId() { return userId; }
     public String getUsername() { return username; }
-    public boolean canLogin() { return loginPermission.isEligible();}
+    public boolean canLogin() {
+        return loginPermission.allowsLogin();
+    }
 }

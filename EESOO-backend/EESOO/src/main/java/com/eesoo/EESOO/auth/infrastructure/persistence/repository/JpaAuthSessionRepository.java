@@ -45,5 +45,27 @@ public class JpaAuthSessionRepository implements AuthSessionRepository{
                 .findById(authSessionId.getValue())
                 .map(mapper::toDomain);
     }
+
+    @Override
+    public Optional<AuthSession> findForRefreshRotation(
+            AuthSessionId authSessionId
+    ) {
+        return springRepo
+                .findForRefreshRotation(
+                        authSessionId.getValue()
+                )
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<AuthSession> findForRevocation(
+            AuthSessionId authSessionId
+    ) {
+        return springRepo
+                .findForRevocation(
+                        authSessionId.getValue()
+                )
+                .map(mapper::toDomain);
+    }
     
 }

@@ -1,4 +1,5 @@
-import { LoginMode } from '../../features/auth/application/model/LoginMode';
+import { LoginMode } from '../../features/auth/application/login/model/LoginMode';
+import { AuthenticatedIdentity } from '../../features/auth/application/login/model/AuthenticatedIdentity';
 
 export type KnownIdentity = {
   userId: string;
@@ -12,14 +13,17 @@ export type AppRoute =
       message: string;
     }
   | {
+      name: 'AUTH_ENTRY';
+    }
+  | {
       name: 'REGISTER';
       deviceReady: boolean;
       deviceMessage: string;
     }
   | {
-    name: 'REGISTER_SUCCESS';
-    username: string;
-  }
+      name: 'REGISTER_SUCCESS';
+      username: string;
+    }
   | {
       name: 'LOGIN';
       mode: Extract<LoginMode, 'KNOWN_IDENTITY'>;
@@ -28,4 +32,20 @@ export type AppRoute =
   | {
       name: 'LOGIN';
       mode: Extract<LoginMode, 'MANUAL'>;
+    }
+  | {
+      name: 'AUTHENTICATED';
+      identity: AuthenticatedIdentity;
+    }
+  | {
+      name: 'DEVICE_LINK_RECOVERY';
+      reason: string | null;
+    }
+  | {
+      name: 'SESSION_RESTORE_ERROR';
+      message: string;
+    }
+  | {
+      name: 'DEVICE_STARTUP_ERROR';
+      message: string;
     };

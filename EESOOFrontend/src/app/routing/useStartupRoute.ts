@@ -1,35 +1,12 @@
-import { useEffect, useState } from 'react';
-import {
-  checkDeviceLinkUseCase,
-  storeDeviceUseCase,
-} from '../../features/shared/device/infrastructure/config/DeviceInfrastructureConfig';
-import { CheckDeviceResponseDTO } from '../../features/shared/device/application/dto/CheckDeviceResponseDTO';
+import { useCallback, useEffect, useState } from 'react';
+import { appStartupCoordinator } from '../startup/AppStartupConfig';
 import { AppRoute } from './AppRoute';
 
-function routeFromCheckResult(checkResult: CheckDeviceResponseDTO): AppRoute {
-  if (checkResult.linked) {
-    return {
-      name: 'LOGIN',
-      mode: 'KNOWN_IDENTITY',
-      knownIdentity: {
-        userId: checkResult.userId,
-        username: checkResult.username,
-        phoneNumber: checkResult.phoneNumber,
-      },
-    };
-  }
-
-  return {
-    name: 'REGISTER',
-    deviceReady: true,
-    deviceMessage: '',
-  };
-}
-
 export function useStartupRoute() {
+  const [startupAttempt, setStartupAttempt] = useState(0);
   const [route, setRoute] = useState<AppRoute>({
     name: 'BOOTSTRAPPING',
-    message: 'Preparing device...',
+    message: 'Preparing application...',
   });
 
   useEffect(() => {
@@ -38,78 +15,17 @@ export function useStartupRoute() {
     const decideStartupRoute = async () => {
       setRoute({
         name: 'BOOTSTRAPPING',
-        message: 'Preparing device...',
+        message: 'Preparing application...',
       });
 
-      const deviceStored = await storeDeviceUseCase.storeDevice();
+      const startupRoute =
+        await appStartupCoordinator.execute();
 
       if (!isMounted) {
         return;
       }
 
-      if (!deviceStored) {
-        setRoute({
-          name: 'REGISTER',
-          deviceReady: false,
-          deviceMessage:
-            'Unable to register this device right now. Please reopen the app and try again.',
-        });
-        return;
-      }
-
-      const checkResult = await checkDeviceLinkUseCase.execute();
-
-      if (!isMounted) {
-        return;
-      }
-
-      const deviceMissingInBackend =
-        !checkResult.linked &&
-        (checkResult.reason === 'DEVICE_NOT_FOUND' ||
-          checkResult.reason === 'DEVICE_NOT_REGISTERED');
-
-      if (deviceMissingInBackend) {
-        setRoute({
-          name: 'BOOTSTRAPPING',
-          message: 'Restoring device connection...',
-        });
-
-        const restored = await storeDeviceUseCase.forceStoreDevice();
-
-        if (!isMounted) {
-          return;
-        }
-
-        if (!restored) {
-          setRoute({
-            name: 'REGISTER',
-            deviceReady: false,
-            deviceMessage:
-              'Unable to restore this device right now. Please reopen the app and try again.',
-          });
-          return;
-        }
-
-        const retryCheckResult = await checkDeviceLinkUseCase.execute();
-
-        if (!isMounted) {
-          return;
-        }
-
-        setRoute(routeFromCheckResult(retryCheckResult));
-        return;
-      }
-
-      if (!checkResult.linked && checkResult.reason === 'DEVICE_ID_MISSING') {
-        setRoute({
-          name: 'REGISTER',
-          deviceReady: true,
-          deviceMessage: '',
-        });
-        return;
-      }
-
-      setRoute(routeFromCheckResult(checkResult));
+      setRoute(startupRoute);
     };
 
     decideStartupRoute();
@@ -117,7 +33,16 @@ export function useStartupRoute() {
     return () => {
       isMounted = false;
     };
+  }, [startupAttempt]);
+
+  const retryStartup = useCallback(() => {
+    setStartupAttempt(previousAttempt =>
+      previousAttempt + 1,
+    );
   }, []);
 
-  return route;
+  return {
+    route,
+    retryStartup,
+  };
 }

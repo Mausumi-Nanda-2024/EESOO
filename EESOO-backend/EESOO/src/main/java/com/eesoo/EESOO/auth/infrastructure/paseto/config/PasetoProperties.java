@@ -13,15 +13,13 @@ public class PasetoProperties {
     private final String accessAudience;
     private final String refreshAudience;
     private final Duration accessTokenDuration;
-    private final Duration refreshTokenDuration;
 
     public PasetoProperties(
             String localKeyBase64,
             String issuer,
             String accessAudience,
             String refreshAudience,
-            Duration accessTokenDuration,
-            Duration refreshTokenDuration
+            Duration accessTokenDuration
     ) {
         if (isBlank(localKeyBase64)) {
             throw new IllegalArgumentException(
@@ -52,19 +50,6 @@ public class PasetoProperties {
                 "accessTokenDuration"
         );
 
-        validateDuration(
-                refreshTokenDuration,
-                "refreshTokenDuration"
-        );
-
-        if (refreshTokenDuration.compareTo(
-                accessTokenDuration
-        ) <= 0) {
-            throw new IllegalArgumentException(
-                    "Refresh-token duration must be longer than access-token duration"
-            );
-        }
-
         this.localKeyBase64 =
                 localKeyBase64.trim();
 
@@ -78,9 +63,6 @@ public class PasetoProperties {
 
         this.accessTokenDuration =
                 accessTokenDuration;
-
-        this.refreshTokenDuration =
-                refreshTokenDuration;
     }
 
     private static void validateDuration(
@@ -128,7 +110,4 @@ public class PasetoProperties {
         return accessTokenDuration;
     }
 
-    public Duration getRefreshTokenDuration() {
-        return refreshTokenDuration;
-    }
 }

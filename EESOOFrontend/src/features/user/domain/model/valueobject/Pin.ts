@@ -1,4 +1,4 @@
-import { ValueResult } from '../../common/ValueResult';
+import { ValueResult } from '../../../../shared/domain/common/ValueResult';
 
 export class Pin {
   private constructor(private readonly value: string) {}

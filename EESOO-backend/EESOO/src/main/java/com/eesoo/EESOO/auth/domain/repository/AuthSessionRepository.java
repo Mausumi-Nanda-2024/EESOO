@@ -10,5 +10,13 @@ public interface AuthSessionRepository {
     AuthSession save(AuthSession authSession);
 
     Optional<AuthSession> findById(AuthSessionId authSessionId);
+
+    Optional<AuthSession> findForRefreshRotation(
+            AuthSessionId authSessionId
+    );
+
+    Optional<AuthSession> findForRevocation(
+            AuthSessionId authSessionId
+    );
     
 }
