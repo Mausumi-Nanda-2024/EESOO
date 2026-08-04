@@ -1,5 +1,8 @@
 package com.eesoo.EESOO.auth.domain.model.enums;
 
+import org.springframework.modulith.NamedInterface;
+
+@NamedInterface("user-spi")
 public enum LoginDeviceLinkStatus {
     
     LINKED,

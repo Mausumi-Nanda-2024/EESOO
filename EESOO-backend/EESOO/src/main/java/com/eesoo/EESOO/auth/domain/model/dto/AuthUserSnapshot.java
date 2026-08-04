@@ -3,8 +3,11 @@ package com.eesoo.EESOO.auth.domain.model.dto;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.modulith.NamedInterface;
+
 import com.eesoo.EESOO.auth.domain.model.enums.LoginPermission;
 
+@NamedInterface("user-spi")
 public final class AuthUserSnapshot {
 
     private final UUID userId;
