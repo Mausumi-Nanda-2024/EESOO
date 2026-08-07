@@ -1,8 +1,8 @@
 package com.eesoo.EESOO.shared.domain.time;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public interface TimeProvider {
 
-    LocalDateTime now();
+    Instant now();
 }

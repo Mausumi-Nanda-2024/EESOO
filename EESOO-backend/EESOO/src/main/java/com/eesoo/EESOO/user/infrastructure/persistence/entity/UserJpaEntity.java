@@ -5,7 +5,7 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -42,7 +42,7 @@ public class UserJpaEntity {
     private String status;
 
     @Column(name = "user_registered_at", nullable = false)
-    private LocalDateTime userRegisteredAt;
+    private Instant userRegisteredAt;
 
    
 }

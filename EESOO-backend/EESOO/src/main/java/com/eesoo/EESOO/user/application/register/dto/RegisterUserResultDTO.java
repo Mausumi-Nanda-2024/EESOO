@@ -1,6 +1,6 @@
 package com.eesoo.EESOO.user.application.register.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import com.eesoo.EESOO.user.domain.model.entity.User;
 
@@ -13,11 +13,11 @@ public class RegisterUserResultDTO {
     private final String phoneNumber;
     private final String email;
     private final String status;
-    private final LocalDateTime userRegisteredAt;
+    private final Instant userRegisteredAt;
     
 
     //constructor
-    private RegisterUserResultDTO(String userId, String username, String firstName, String lastName, String phoneNumber, String email, String status, LocalDateTime userRegisteredAt ){
+    private RegisterUserResultDTO(String userId, String username, String firstName, String lastName, String phoneNumber, String email, String status, Instant userRegisteredAt ){
         this.userId = userId;
         this.username = username;
         this.firstName = firstName;
@@ -70,7 +70,7 @@ public class RegisterUserResultDTO {
         return status;
     }
 
-    public LocalDateTime getUserRegisteredAt() {
+    public Instant getUserRegisteredAt() {
         return userRegisteredAt;
     }
 

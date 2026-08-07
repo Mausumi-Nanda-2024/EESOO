@@ -1,6 +1,6 @@
 package com.eesoo.EESOO.user.domain.model.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 
 import com.eesoo.EESOO.user.domain.model.enums.LinkStatus;
@@ -17,8 +17,8 @@ public class UserDeviceLink {
     private final UserId userId;
     private final LinkStatus status;
     private final LinkedDeviceType linkedDeviceType;
-    private final LocalDateTime linkedAt;
-    private final LocalDateTime unlinkedAt;
+    private final Instant linkedAt;
+    private final Instant unlinkedAt;
 
     private UserDeviceLink(
             UserDeviceLinkId id,
@@ -26,8 +26,8 @@ public class UserDeviceLink {
             UserId userId,
             LinkStatus status,
             LinkedDeviceType linkedDeviceType,
-            LocalDateTime linkedAt,
-            LocalDateTime unlinkedAt
+            Instant linkedAt,
+            Instant unlinkedAt
     ) {
         if (id == null) throw new IllegalArgumentException("id cannot be null");
         if (deviceInstallId == null) throw new IllegalArgumentException("deviceInstallId cannot be null");
@@ -58,7 +58,7 @@ public class UserDeviceLink {
             UserId userId,
             LinkedDeviceType linkedDeviceType,
             TimeProvider timeProvider) {
-        LocalDateTime now = timeProvider.now();
+        Instant now = timeProvider.now();
         return new UserDeviceLink(
                 UserDeviceLinkId.create(),
                 deviceInstallId,
@@ -76,8 +76,8 @@ public class UserDeviceLink {
             UserId userId,
             LinkStatus status,
             LinkedDeviceType linkedDeviceType,
-            LocalDateTime linkedAt,
-            LocalDateTime unlinkedAt
+            Instant linkedAt,
+            Instant unlinkedAt
     ) {
         return new UserDeviceLink(
                 id,
@@ -126,11 +126,11 @@ public class UserDeviceLink {
         return linkedDeviceType;
     }
 
-    public LocalDateTime getLinkedAt() {
+    public Instant getLinkedAt() {
         return linkedAt;
     }
 
-    public LocalDateTime getUnlinkedAt() {
+    public Instant getUnlinkedAt() {
         return unlinkedAt;
     }
 

@@ -1,6 +1,6 @@
 package com.eesoo.EESOO.user.domain.model.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 
 import com.eesoo.EESOO.user.domain.model.enums.DeviceIdNullableReason;
@@ -20,8 +20,8 @@ public class DeviceInstall {
     private final String platform;
     private final DeviceIdNullableReason deviceIdNullableReason;
 
-    private final LocalDateTime firstSeenAt;
-    private final LocalDateTime lastSeenAt;
+    private final Instant firstSeenAt;
+    private final Instant lastSeenAt;
 
     private DeviceInstall(
             DeviceInstallId id,
@@ -30,8 +30,8 @@ public class DeviceInstall {
             String osVersion,
             String platform,
             DeviceIdNullableReason deviceIdNullableReasonOrNull,
-            LocalDateTime firstSeenAt,
-            LocalDateTime lastSeenAt
+            Instant firstSeenAt,
+            Instant lastSeenAt
     ) {
         if (id == null) throw new IllegalArgumentException("id cannot be null");
         if (installId == null) throw new IllegalArgumentException("installId cannot be null");
@@ -60,7 +60,7 @@ public class DeviceInstall {
             DeviceIdNullableReason deviceIdNullableReasonOrNull,
             TimeProvider timeProvider
     ) {
-        LocalDateTime now = timeProvider.now();
+        Instant now = timeProvider.now();
         return new DeviceInstall(
                 DeviceInstallId.create(),
                 deviceIdOrNull,
@@ -80,8 +80,8 @@ public class DeviceInstall {
             String osVersion,
             String platform,
             DeviceIdNullableReason deviceIdNullableReasonOrNull,
-            LocalDateTime firstSeenAt,
-            LocalDateTime lastSeenAt
+            Instant firstSeenAt,
+            Instant lastSeenAt
     ) {
         return new DeviceInstall(
                 id,
@@ -197,11 +197,11 @@ public class DeviceInstall {
         return deviceIdNullableReason;
     }
 
-    public LocalDateTime getFirstSeenAt() {
+    public Instant getFirstSeenAt() {
         return firstSeenAt;
     }
 
-    public LocalDateTime getLastSeenAt() {
+    public Instant getLastSeenAt() {
         return lastSeenAt;
     }
 

@@ -12,7 +12,7 @@ import com.eesoo.EESOO.user.domain.model.valueobject.UserId;
 import com.eesoo.EESOO.user.domain.model.valueobject.Username;
 import com.eesoo.EESOO.shared.domain.time.TimeProvider;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 
 public class User {
@@ -24,7 +24,7 @@ public class User {
    private final Email email;
    private final Pin pin;
    private final PhoneNumber phoneNumber; 
-   private final LocalDateTime userRegisteredAt; 
+   private final Instant userRegisteredAt;
    private UserStatus status;                                                
 
 // Private constructor for registration
@@ -36,7 +36,7 @@ private User(
     Pin pin,
     Email email,
     PhoneNumber phoneNumber,
-    LocalDateTime userRegisteredAt
+    Instant userRegisteredAt
 ) {
     this.id = id;
     this.username = username;
@@ -58,7 +58,7 @@ private User(
     Pin pin,
     Email email,
     PhoneNumber phoneNumber,
-    LocalDateTime userRegisteredAt,
+    Instant userRegisteredAt,
     UserStatus status
 ) {
     this.id = id;
@@ -80,7 +80,7 @@ public static User rehydrate(
     Pin pin,
     Email email,
     PhoneNumber phoneNumber,
-    LocalDateTime registeredAt,
+    Instant registeredAt,
     UserStatus status
 ) {
     return new User(
@@ -137,7 +137,7 @@ public static User rehydrate(
       return status;
    }
 
-   public LocalDateTime getUserRegisteredAt(){
+   public Instant getUserRegisteredAt(){
       return userRegisteredAt;
    }
 
