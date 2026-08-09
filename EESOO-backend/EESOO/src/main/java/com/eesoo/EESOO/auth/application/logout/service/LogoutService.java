@@ -1,12 +1,11 @@
 package com.eesoo.EESOO.auth.application.logout.service;
 
-import java.util.UUID;
-
 import org.springframework.stereotype.Service;
 
 import com.eesoo.EESOO.auth.application.logout.command.LogoutCommand;
+import com.eesoo.EESOO.auth.application.logout.dto.LogoutDTO;
 import com.eesoo.EESOO.auth.application.logout.handler.LogoutCommandHandler;
-import com.eesoo.EESOO.auth.domain.model.valueobject.AuthSessionId;
+import com.eesoo.EESOO.auth.application.logout.mapper.LogoutMapper;
 
 @Service
 public class LogoutService {
@@ -20,13 +19,17 @@ public class LogoutService {
     }
 
     public void logout(
-            UUID userId,
-            AuthSessionId sessionId
+            LogoutDTO dto
     ) {
+        if (dto == null) {
+            throw new IllegalArgumentException(
+                    "LogoutDTO cannot be null"
+            );
+        }
+
         LogoutCommand command =
-                new LogoutCommand(
-                        userId,
-                        sessionId
+                LogoutMapper.toCommand(
+                        dto
                 );
 
         handler.handle(command);

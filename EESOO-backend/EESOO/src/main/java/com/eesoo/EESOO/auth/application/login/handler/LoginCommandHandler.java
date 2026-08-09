@@ -1,5 +1,7 @@
 package com.eesoo.EESOO.auth.application.login.handler;
 
+import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -10,19 +12,24 @@ import org.springframework.transaction.annotation.Transactional;
 import com.eesoo.EESOO.auth.application.exception.DeviceInstallationNotRegisteredException;
 import com.eesoo.EESOO.auth.application.exception.DeviceLoginRejectedException;
 import com.eesoo.EESOO.auth.application.exception.InvalidCredentialsException;
+import com.eesoo.EESOO.auth.application.exception.PinLoginFailureException;
 import com.eesoo.EESOO.auth.application.login.command.LoginUserCommand;
 import com.eesoo.EESOO.auth.application.login.dto.LoginUserResultDTO;
 import com.eesoo.EESOO.auth.application.login.mapper.LoginUserMapper;
 import com.eesoo.EESOO.auth.application.login.service.AuthSessionCreationService;
+import com.eesoo.EESOO.auth.application.pinreset.service.PinLoginFailureService;
 import com.eesoo.EESOO.auth.domain.model.dto.AuthUserSnapshot;
 import com.eesoo.EESOO.auth.domain.model.entity.AuthUser;
+import com.eesoo.EESOO.auth.domain.model.entity.PinResetAttempt;
 import com.eesoo.EESOO.auth.domain.model.enums.LoginDeviceLinkStatus;
 import com.eesoo.EESOO.auth.domain.model.valueobject.TokenPair;
 import com.eesoo.EESOO.auth.domain.port.LoadAuthUserPort;
 import com.eesoo.EESOO.auth.domain.port.LoadDeviceInstallPort;
 import com.eesoo.EESOO.auth.domain.port.LoginDeviceLinkPort;
 import com.eesoo.EESOO.auth.domain.port.PinVerificationPort;
+import com.eesoo.EESOO.auth.domain.repository.PinResetAttemptRepository;
 import com.eesoo.EESOO.shared.application.cqrs.CommandHandler;
+import com.eesoo.EESOO.shared.domain.time.TimeProvider;
 
 @Component
 public class LoginCommandHandler
@@ -41,13 +48,19 @@ public class LoginCommandHandler
     private final LoadDeviceInstallPort loadDeviceInstallPort;
     private final LoginDeviceLinkPort loginDeviceLinkPort;
     private final AuthSessionCreationService authSessionCreationService;
+    private final PinLoginFailureService pinLoginFailureService;
+    private final PinResetAttemptRepository pinResetAttemptRepository;
+    private final TimeProvider timeProvider;
 
     public LoginCommandHandler(
             LoadAuthUserPort loadAuthUserPort,
             PinVerificationPort pinVerificationPort,
             LoadDeviceInstallPort loadDeviceInstallPort,
             LoginDeviceLinkPort loginDeviceLinkPort,
-            AuthSessionCreationService authSessionCreationService
+            AuthSessionCreationService authSessionCreationService,
+            PinLoginFailureService pinLoginFailureService,
+            PinResetAttemptRepository pinResetAttemptRepository,
+            TimeProvider timeProvider
     ) {
         this.loadAuthUserPort = loadAuthUserPort;
         this.pinVerificationPort = pinVerificationPort;
@@ -55,6 +68,11 @@ public class LoginCommandHandler
         this.loginDeviceLinkPort = loginDeviceLinkPort;
         this.authSessionCreationService =
                 authSessionCreationService;
+        this.pinLoginFailureService =
+                pinLoginFailureService;
+        this.pinResetAttemptRepository =
+                pinResetAttemptRepository;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -69,10 +87,21 @@ public class LoginCommandHandler
         }
 
         AuthUser authUser =
-                authenticateUser(command);
+                loadAndValidateUser(command);
 
         UUID deviceInstallId =
                 resolveDeviceInstallId(command);
+
+        enforcePinResetStateBeforeVerification(
+                authUser.getUserId(),
+                deviceInstallId
+        );
+
+        verifyPinOrRecordFailure(
+                authUser,
+                deviceInstallId,
+                command.getPin()
+        );
 
         LoginDeviceLinkStatus deviceLinkStatus =
                 attemptDeviceLink(
@@ -86,6 +115,12 @@ public class LoginCommandHandler
                     deviceLinkStatus
             );
         }
+
+        pinResetAttemptRepository
+                .deleteByUserIdAndDeviceInstallId(
+                        authUser.getUserId(),
+                        deviceInstallId
+                );
 
         TokenPair tokenPair =
                 authSessionCreationService.createSession(
@@ -103,7 +138,7 @@ public class LoginCommandHandler
         );
     }
 
-    private AuthUser authenticateUser(
+    private AuthUser loadAndValidateUser(
             LoginUserCommand command
     ) {
         AuthUserSnapshot snapshot =
@@ -126,17 +161,75 @@ public class LoginCommandHandler
             throw new InvalidCredentialsException();
         }
 
+        return authUser;
+    }
+
+    private void enforcePinResetStateBeforeVerification(
+            UUID userId,
+            UUID deviceInstallId
+    ) {
+        Optional<PinResetAttempt> existingAttempt =
+                pinResetAttemptRepository
+                        .findForUpdateByUserIdAndDeviceInstallId(
+                                userId,
+                                deviceInstallId
+                        );
+
+        if (existingAttempt.isEmpty()) {
+            return;
+        }
+
+        PinResetAttempt attempt =
+                existingAttempt.get();
+
+        if (attempt.hasPinBeenIssued()) {
+            return;
+        }
+
+        Instant currentTime =
+                timeProvider.now();
+
+        if (attempt.isExpired(currentTime)) {
+            pinResetAttemptRepository.deleteById(
+                    attempt.getId()
+            );
+
+            return;
+        }
+
+        if (attempt.getStatus().isResetAvailable()
+                || attempt.getStatus().isMobileConfirmed()) {
+            throw new PinLoginFailureException(
+                    attempt
+            );
+        }
+    }
+
+    private void verifyPinOrRecordFailure(
+            AuthUser authUser,
+            UUID deviceInstallId,
+            String submittedPin
+    ) {
         boolean pinMatches =
                 pinVerificationPort.verifyPin(
                         authUser.getUserId(),
-                        command.getPin()
+                        submittedPin
                 );
 
-        if (!pinMatches) {
-            throw new InvalidCredentialsException();
+        if (pinMatches) {
+            return;
         }
 
-        return authUser;
+        PinResetAttempt attempt =
+                pinLoginFailureService
+                        .recordFailedPin(
+                                authUser.getUserId(),
+                                deviceInstallId
+                        );
+
+        throw new PinLoginFailureException(
+                attempt
+        );
     }
 
     private UUID resolveDeviceInstallId(

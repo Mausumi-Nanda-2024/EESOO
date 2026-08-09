@@ -1,5 +1,6 @@
 package com.eesoo.EESOO.auth.presentation.exception;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -11,125 +12,126 @@ import com.eesoo.EESOO.auth.application.exception.AuthSessionNotUsableException;
 import com.eesoo.EESOO.auth.application.exception.DeviceInstallationNotRegisteredException;
 import com.eesoo.EESOO.auth.application.exception.DeviceLoginRejectedException;
 import com.eesoo.EESOO.auth.application.exception.InvalidCredentialsException;
+import com.eesoo.EESOO.auth.application.exception.PinLoginFailureException;
 import com.eesoo.EESOO.auth.application.exception.RefreshTokenReplayDetectedException;
 import com.eesoo.EESOO.auth.domain.exception.InvalidTokenException;
 import com.eesoo.EESOO.shared.Api.ApiResponse;
 
-@RestControllerAdvice(
-        basePackages = "com.eesoo.EESOO.auth"
-)
+@RestControllerAdvice(basePackages = "com.eesoo.EESOO.auth")
 public class AuthExceptionHandler {
 
-    @ExceptionHandler(
-            InvalidCredentialsException.class
-    )
-    public ResponseEntity<ApiResponse<Object>>
-            handleInvalidCredentials(
-                    InvalidCredentialsException exception
-            ) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        ApiResponse.error(
-                                exception.getMessage(),
-                                null
-                        )
-                );
-    }
+        @ExceptionHandler(InvalidCredentialsException.class)
+        public ResponseEntity<ApiResponse<Object>> handleInvalidCredentials(
+                        InvalidCredentialsException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .body(
+                                                ApiResponse.error(
+                                                                exception.getMessage(),
+                                                                null));
+        }
 
-    @ExceptionHandler(
-            DeviceInstallationNotRegisteredException.class
-    )
-    public ResponseEntity<ApiResponse<Object>>
-            handleDeviceInstallationNotRegistered(
-                    DeviceInstallationNotRegisteredException exception
-            ) {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(
-                        ApiResponse.error(
-                                exception.getMessage(),
-                                Map.of(
-                                        "code",
-                                        "DEVICE_NOT_REGISTERED"
-                                )
-                        )
-                );
-    }
+        @ExceptionHandler(PinLoginFailureException.class)
+        public ResponseEntity<ApiResponse<Object>> handlePinLoginFailure(
+                        PinLoginFailureException exception) {
+                LinkedHashMap<String, Object> data = new LinkedHashMap<>();
 
-    @ExceptionHandler(
-            DeviceLoginRejectedException.class
-    )
-    public ResponseEntity<ApiResponse<Object>>
-            handleDeviceLoginRejected(
-                    DeviceLoginRejectedException exception
-            ) {
-        return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(
-                        ApiResponse.error(
-                                exception.getMessage(),
-                                Map.of(
-                                        "code",
+                data.put(
+                                "code",
+                                exception.getCode());
+
+                data.put(
+                                "resetStatus",
+                                exception.getResetStatus().name());
+
+                data.put(
+                                "remainingAttempts",
+                                exception.getRemainingAttempts());
+
+                if (!exception
+                                .getResetStatus()
+                                .isFirstFailure()) {
+                        data.put(
+                                        "pinResetAttemptId",
                                         exception
-                                                .getDeviceLinkStatus()
-                                                .name()
-                                )
-                        )
-                );
-    }
+                                                        .getAttemptId()
+                                                        .toString());
+                }
 
-    @ExceptionHandler(
-            InvalidTokenException.class
-    )
-    public ResponseEntity<ApiResponse<Object>>
-            handleInvalidToken(
-                    InvalidTokenException exception
-            ) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        ApiResponse.error(
-                                exception.getMessage(),
-                                null
-                        )
-                );
-    }
+                HttpStatus responseStatus = exception
+                                .getResetStatus()
+                                .isFirstFailure()
+                                                ? HttpStatus.UNAUTHORIZED
+                                                : HttpStatus.LOCKED;
 
-    @ExceptionHandler(
-            AuthSessionNotUsableException.class
-    )
-    public ResponseEntity<ApiResponse<Object>>
-            handleAuthSessionNotUsable(
-                    AuthSessionNotUsableException exception
-            ) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        ApiResponse.error(
-                                exception.getMessage(),
-                                null
-                        )
-                );
-    }
+                return ResponseEntity
+                                .status(responseStatus)
+                                .body(
+                                                ApiResponse.error(
+                                                                exception.getMessage(),
+                                                                data));
+        }
 
-    @ExceptionHandler(
-            RefreshTokenReplayDetectedException.class
-    )
-    public ResponseEntity<ApiResponse<Object>>
-            handleRefreshTokenReplayDetected(
-                    RefreshTokenReplayDetectedException exception
-            ) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        ApiResponse.error(
-                                exception.getMessage(),
-                                Map.of(
-                                        "code",
-                                        "REFRESH_TOKEN_REUSE_DETECTED"
-                                )
-                        )
-                );
-    }
+        @ExceptionHandler(DeviceInstallationNotRegisteredException.class)
+        public ResponseEntity<ApiResponse<Object>> handleDeviceInstallationNotRegistered(
+                        DeviceInstallationNotRegisteredException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(
+                                                ApiResponse.error(
+                                                                exception.getMessage(),
+                                                                Map.of(
+                                                                                "code",
+                                                                                "DEVICE_NOT_REGISTERED")));
+        }
+
+        @ExceptionHandler(DeviceLoginRejectedException.class)
+        public ResponseEntity<ApiResponse<Object>> handleDeviceLoginRejected(
+                        DeviceLoginRejectedException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.FORBIDDEN)
+                                .body(
+                                                ApiResponse.error(
+                                                                exception.getMessage(),
+                                                                Map.of(
+                                                                                "code",
+                                                                                exception
+                                                                                                .getDeviceLinkStatus()
+                                                                                                .name())));
+        }
+
+        @ExceptionHandler(InvalidTokenException.class)
+        public ResponseEntity<ApiResponse<Object>> handleInvalidToken(
+                        InvalidTokenException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .body(
+                                                ApiResponse.error(
+                                                                exception.getMessage(),
+                                                                null));
+        }
+
+        @ExceptionHandler(AuthSessionNotUsableException.class)
+        public ResponseEntity<ApiResponse<Object>> handleAuthSessionNotUsable(
+                        AuthSessionNotUsableException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .body(
+                                                ApiResponse.error(
+                                                                exception.getMessage(),
+                                                                null));
+        }
+
+        @ExceptionHandler(RefreshTokenReplayDetectedException.class)
+        public ResponseEntity<ApiResponse<Object>> handleRefreshTokenReplayDetected(
+                        RefreshTokenReplayDetectedException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .body(
+                                                ApiResponse.error(
+                                                                exception.getMessage(),
+                                                                Map.of(
+                                                                                "code",
+                                                                                "REFRESH_TOKEN_REUSE_DETECTED")));
+        }
 }

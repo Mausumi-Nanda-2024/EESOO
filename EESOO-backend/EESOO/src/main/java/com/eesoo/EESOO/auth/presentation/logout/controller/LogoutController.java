@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eesoo.EESOO.auth.application.logout.dto.LogoutDTO;
 import com.eesoo.EESOO.auth.application.logout.service.LogoutService;
 import com.eesoo.EESOO.auth.infrastructure.security.AuthenticatedUserPrincipal;
 import com.eesoo.EESOO.shared.Api.ApiResponse;
@@ -27,9 +28,14 @@ public class LogoutController {
             @AuthenticationPrincipal
             AuthenticatedUserPrincipal principal
     ) {
+        LogoutDTO applicationDTO =
+                new LogoutDTO(
+                        principal.getUserId(),
+                        principal.getSessionId()
+                );
+
         logoutService.logout(
-                principal.getUserId(),
-                principal.getSessionId()
+                applicationDTO
         );
 
         return ResponseEntity.ok(

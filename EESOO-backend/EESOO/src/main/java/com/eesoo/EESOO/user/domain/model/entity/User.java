@@ -106,6 +106,28 @@ public static User rehydrate(
           pin , email , phoneNumber , timeProvider.now());
    }
 
+   public User replacePin(
+      Pin newPin
+   ) {
+      if (newPin == null) {
+         throw new IllegalArgumentException(
+            "New PIN cannot be null"
+         );
+      }
+
+      return new User(
+         id,
+         username,
+         firstName,
+         lastName,
+         newPin,
+         email,
+         phoneNumber,
+         userRegisteredAt,
+         status
+      );
+   }
+
    public UserId getId(){
       return id;
    }

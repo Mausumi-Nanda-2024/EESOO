@@ -22,6 +22,23 @@ public class JpaUserRepository implements UserRepository {
     }
 
     @Override
+    public User save(
+            User user
+    ) {
+        if (user == null) {
+            throw new IllegalArgumentException(
+                    "User cannot be null"
+            );
+        }
+
+        return mapper.toDomain(
+                springRepo.saveAndFlush(
+                        mapper.toEntity(user)
+                )
+        );
+    }
+
+    @Override
     public boolean saveIfUsernameAvailable(User user) {
         try {
             springRepo.saveAndFlush(mapper.toEntity(user));
@@ -61,6 +78,23 @@ public class JpaUserRepository implements UserRepository {
     return springRepo.findById(userId)
             .map(mapper::toDomain);
 }
+
+    @Override
+    public Optional<User> findForUpdateById(
+            UUID userId
+    ) {
+        if (userId == null) {
+            throw new IllegalArgumentException(
+                    "userId cannot be null"
+            );
+        }
+
+        return springRepo
+                .findForUpdateById(
+                        userId
+                )
+                .map(mapper::toDomain);
+    }
 
     private boolean isUsernameDuplicate(DataIntegrityViolationException ex) {
         Throwable current = ex;

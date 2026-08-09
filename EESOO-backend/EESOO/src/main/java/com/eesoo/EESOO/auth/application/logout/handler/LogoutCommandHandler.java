@@ -1,6 +1,5 @@
 package com.eesoo.EESOO.auth.application.logout.handler;
 
-import java.time.Clock;
 import java.time.Instant;
 
 import org.springframework.stereotype.Component;
@@ -11,6 +10,7 @@ import com.eesoo.EESOO.auth.application.logout.command.LogoutCommand;
 import com.eesoo.EESOO.auth.domain.model.entity.AuthSession;
 import com.eesoo.EESOO.auth.domain.repository.AuthSessionRepository;
 import com.eesoo.EESOO.shared.application.cqrs.CommandHandler;
+import com.eesoo.EESOO.shared.domain.time.TimeProvider;
 
 @Component
 public class LogoutCommandHandler
@@ -20,16 +20,16 @@ public class LogoutCommandHandler
         > {
 
     private final AuthSessionRepository authSessionRepository;
-    private final Clock clock;
+    private final TimeProvider timeProvider;
 
     public LogoutCommandHandler(
             AuthSessionRepository authSessionRepository,
-            Clock clock
+            TimeProvider timeProvider
     ) {
         this.authSessionRepository =
                 authSessionRepository;
 
-        this.clock = clock;
+        this.timeProvider = timeProvider;
     }
 
     @Override
@@ -59,7 +59,7 @@ public class LogoutCommandHandler
         }
 
         Instant revokedAt =
-                clock.instant();
+                timeProvider.now();
 
         AuthSession revokedSession =
                 authSession.revoke(

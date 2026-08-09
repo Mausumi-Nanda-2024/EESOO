@@ -9,6 +9,8 @@ import com.eesoo.EESOO.auth.domain.model.valueobject.PinResetAttemptId;
 
 public class PinResetAttempt {
 
+    private static final int MAX_FAILED_ATTEMPTS = 2;
+
      private final PinResetAttemptId id;
 
     private final UUID userId;
@@ -55,9 +57,11 @@ public class PinResetAttempt {
             );
         }
 
-        if (failedAttempts < 1 || failedAttempts > 2) {
+        if (failedAttempts < 1
+                || failedAttempts > MAX_FAILED_ATTEMPTS) {
             throw new IllegalArgumentException(
-                    "failedAttempts must be between 1 and 2"
+                    "failedAttempts must be between 1 and "
+                            + MAX_FAILED_ATTEMPTS
             );
         }
 
@@ -468,6 +472,14 @@ public class PinResetAttempt {
 
     public int getFailedAttempts() {
         return failedAttempts;
+    }
+
+    public int getRemainingAttempts() {
+        return Math.max(
+                0,
+                MAX_FAILED_ATTEMPTS
+                        - failedAttempts
+        );
     }
 
     public PinResetStatus getStatus() {
