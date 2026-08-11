@@ -3,8 +3,8 @@ package com.eesoo.EESOO.auth.application.login.service;
 import org.springframework.stereotype.Service;
 
 import com.eesoo.EESOO.auth.application.login.command.LoginUserCommand;
+import com.eesoo.EESOO.auth.application.login.dto.LoginOutcome;
 import com.eesoo.EESOO.auth.application.login.dto.LoginUserDTO;
-import com.eesoo.EESOO.auth.application.login.dto.LoginUserResultDTO;
 import com.eesoo.EESOO.auth.application.login.handler.LoginCommandHandler;
 import com.eesoo.EESOO.auth.application.login.mapper.LoginUserMapper;
 
@@ -19,7 +19,7 @@ public class LoginUserService {
         this.handler = handler;
     }
 
-    public LoginUserResultDTO login(
+    public LoginOutcome login(
             LoginUserDTO dto
     ) {
         if (dto == null) {

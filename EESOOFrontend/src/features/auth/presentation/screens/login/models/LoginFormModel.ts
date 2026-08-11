@@ -6,5 +6,6 @@ export interface LoginFormFields {
 export type LoginErrors = Partial<
   Record<keyof LoginFormFields, string>
 > & {
+  recoveryPhoneNumber?: string;
   general?: string;
 };

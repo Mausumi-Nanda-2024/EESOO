@@ -1,43 +1,40 @@
-package com.eesoo.EESOO.auth.application.exception;
+package com.eesoo.EESOO.auth.application.login.dto;
 
 import com.eesoo.EESOO.auth.domain.model.entity.PinResetAttempt;
 import com.eesoo.EESOO.auth.domain.model.enums.PinResetStatus;
-import com.eesoo.EESOO.auth.domain.model.valueobject.PinResetAttemptId;
 
-public class PinLoginFailureException
-        extends RuntimeException {
+public final class PinLoginFailureResultDTO {
 
-    private final PinResetAttemptId attemptId;
+    private final String pinResetAttemptId;
     private final PinResetStatus resetStatus;
     private final String code;
+    private final String message;
     private final int remainingAttempts;
 
-    public PinLoginFailureException(
-            PinResetAttempt attempt
+    private PinLoginFailureResultDTO(
+            String pinResetAttemptId,
+            PinResetStatus resetStatus,
+            String code,
+            String message,
+            int remainingAttempts
     ) {
-        super(
-                messageFor(
-                        requireAttempt(attempt)
-                                .getStatus()
-                )
-        );
-
-        this.attemptId =
-                attempt.getId();
+        this.pinResetAttemptId =
+                pinResetAttemptId;
 
         this.resetStatus =
-                attempt.getStatus();
+                resetStatus;
 
         this.code =
-                codeFor(
-                        attempt.getStatus()
-                );
+                code;
+
+        this.message =
+                message;
 
         this.remainingAttempts =
-                attempt.getRemainingAttempts();
+                remainingAttempts;
     }
 
-    private static PinResetAttempt requireAttempt(
+    public static PinLoginFailureResultDTO from(
             PinResetAttempt attempt
     ) {
         if (attempt == null) {
@@ -46,7 +43,18 @@ public class PinLoginFailureException
             );
         }
 
-        return attempt;
+        PinResetStatus status =
+                attempt.getStatus();
+
+        return new PinLoginFailureResultDTO(
+                status.isFirstFailure()
+                        ? null
+                        : attempt.getId().toString(),
+                status,
+                codeFor(status),
+                messageFor(status),
+                attempt.getRemainingAttempts()
+        );
     }
 
     private static String messageFor(
@@ -86,8 +94,8 @@ public class PinLoginFailureException
         };
     }
 
-    public PinResetAttemptId getAttemptId() {
-        return attemptId;
+    public String getPinResetAttemptId() {
+        return pinResetAttemptId;
     }
 
     public PinResetStatus getResetStatus() {
@@ -96,6 +104,10 @@ public class PinLoginFailureException
 
     public String getCode() {
         return code;
+    }
+
+    public String getMessage() {
+        return message;
     }
 
     public int getRemainingAttempts() {

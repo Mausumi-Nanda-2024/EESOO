@@ -12,9 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.eesoo.EESOO.auth.application.exception.DeviceInstallationNotRegisteredException;
 import com.eesoo.EESOO.auth.application.exception.DeviceLoginRejectedException;
 import com.eesoo.EESOO.auth.application.exception.InvalidCredentialsException;
-import com.eesoo.EESOO.auth.application.exception.PinLoginFailureException;
 import com.eesoo.EESOO.auth.application.login.command.LoginUserCommand;
+import com.eesoo.EESOO.auth.application.login.dto.LoginOutcome;
 import com.eesoo.EESOO.auth.application.login.dto.LoginUserResultDTO;
+import com.eesoo.EESOO.auth.application.login.dto.PinLoginFailureResultDTO;
 import com.eesoo.EESOO.auth.application.login.mapper.LoginUserMapper;
 import com.eesoo.EESOO.auth.application.login.service.AuthSessionCreationService;
 import com.eesoo.EESOO.auth.application.pinreset.service.PinLoginFailureService;
@@ -35,7 +36,7 @@ import com.eesoo.EESOO.shared.domain.time.TimeProvider;
 public class LoginCommandHandler
         implements CommandHandler<
                 LoginUserCommand,
-                LoginUserResultDTO
+                LoginOutcome
         > {
 
     private static final Logger log =
@@ -77,7 +78,7 @@ public class LoginCommandHandler
 
     @Override
     @Transactional
-    public LoginUserResultDTO handle(
+    public LoginOutcome handle(
             LoginUserCommand command
     ) {
         if (command == null) {
@@ -92,16 +93,30 @@ public class LoginCommandHandler
         UUID deviceInstallId =
                 resolveDeviceInstallId(command);
 
-        enforcePinResetStateBeforeVerification(
-                authUser.getUserId(),
-                deviceInstallId
-        );
+        Optional<PinResetAttempt> blockingAttempt =
+                findBlockingPinResetAttempt(
+                        authUser.getUserId(),
+                        deviceInstallId
+                );
 
-        verifyPinOrRecordFailure(
-                authUser,
-                deviceInstallId,
-                command.getPin()
-        );
+        if (blockingAttempt.isPresent()) {
+            return toPinFailureOutcome(
+                    blockingAttempt.get()
+            );
+        }
+
+        Optional<PinResetAttempt> pinFailure =
+                verifyPinOrRecordFailure(
+                        authUser,
+                        deviceInstallId,
+                        command.getPin()
+                );
+
+        if (pinFailure.isPresent()) {
+            return toPinFailureOutcome(
+                    pinFailure.get()
+            );
+        }
 
         LoginDeviceLinkStatus deviceLinkStatus =
                 attemptDeviceLink(
@@ -128,13 +143,18 @@ public class LoginCommandHandler
                         deviceInstallId
                 );
 
-        return LoginUserMapper.toResult(
-                authUser,
-                tokenPair,
-                deviceLinkStatus.isLinked(),
-                deviceLinkStatus.isLinked()
-                        ? null
-                        : deviceLinkStatus.name()
+        LoginUserResultDTO successfulLogin =
+                LoginUserMapper.toResult(
+                        authUser,
+                        tokenPair,
+                        deviceLinkStatus.isLinked(),
+                        deviceLinkStatus.isLinked()
+                                ? null
+                                : deviceLinkStatus.name()
+                );
+
+        return LoginOutcome.success(
+                successfulLogin
         );
     }
 
@@ -164,7 +184,7 @@ public class LoginCommandHandler
         return authUser;
     }
 
-    private void enforcePinResetStateBeforeVerification(
+    private Optional<PinResetAttempt> findBlockingPinResetAttempt(
             UUID userId,
             UUID deviceInstallId
     ) {
@@ -176,14 +196,14 @@ public class LoginCommandHandler
                         );
 
         if (existingAttempt.isEmpty()) {
-            return;
+            return Optional.empty();
         }
 
         PinResetAttempt attempt =
                 existingAttempt.get();
 
         if (attempt.hasPinBeenIssued()) {
-            return;
+            return Optional.empty();
         }
 
         Instant currentTime =
@@ -194,18 +214,20 @@ public class LoginCommandHandler
                     attempt.getId()
             );
 
-            return;
+            return Optional.empty();
         }
 
         if (attempt.getStatus().isResetAvailable()
                 || attempt.getStatus().isMobileConfirmed()) {
-            throw new PinLoginFailureException(
+            return Optional.of(
                     attempt
             );
         }
+
+        return Optional.empty();
     }
 
-    private void verifyPinOrRecordFailure(
+    private Optional<PinResetAttempt> verifyPinOrRecordFailure(
             AuthUser authUser,
             UUID deviceInstallId,
             String submittedPin
@@ -217,7 +239,7 @@ public class LoginCommandHandler
                 );
 
         if (pinMatches) {
-            return;
+            return Optional.empty();
         }
 
         PinResetAttempt attempt =
@@ -227,8 +249,18 @@ public class LoginCommandHandler
                                 deviceInstallId
                         );
 
-        throw new PinLoginFailureException(
+        return Optional.of(
                 attempt
+        );
+    }
+
+    private static LoginOutcome toPinFailureOutcome(
+            PinResetAttempt attempt
+    ) {
+        return LoginOutcome.pinFailure(
+                PinLoginFailureResultDTO.from(
+                        attempt
+                )
         );
     }
 

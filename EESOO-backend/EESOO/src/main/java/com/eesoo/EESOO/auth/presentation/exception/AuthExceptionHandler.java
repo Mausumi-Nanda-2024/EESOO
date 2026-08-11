@@ -1,6 +1,5 @@
 package com.eesoo.EESOO.auth.presentation.exception;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -12,7 +11,8 @@ import com.eesoo.EESOO.auth.application.exception.AuthSessionNotUsableException;
 import com.eesoo.EESOO.auth.application.exception.DeviceInstallationNotRegisteredException;
 import com.eesoo.EESOO.auth.application.exception.DeviceLoginRejectedException;
 import com.eesoo.EESOO.auth.application.exception.InvalidCredentialsException;
-import com.eesoo.EESOO.auth.application.exception.PinLoginFailureException;
+import com.eesoo.EESOO.auth.application.exception.PinResetAttemptNotFoundException;
+import com.eesoo.EESOO.auth.application.exception.PinResetMobileVerificationException;
 import com.eesoo.EESOO.auth.application.exception.RefreshTokenReplayDetectedException;
 import com.eesoo.EESOO.auth.domain.exception.InvalidTokenException;
 import com.eesoo.EESOO.shared.Api.ApiResponse;
@@ -29,47 +29,6 @@ public class AuthExceptionHandler {
                                                 ApiResponse.error(
                                                                 exception.getMessage(),
                                                                 null));
-        }
-
-        @ExceptionHandler(PinLoginFailureException.class)
-        public ResponseEntity<ApiResponse<Object>> handlePinLoginFailure(
-                        PinLoginFailureException exception) {
-                LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-
-                data.put(
-                                "code",
-                                exception.getCode());
-
-                data.put(
-                                "resetStatus",
-                                exception.getResetStatus().name());
-
-                data.put(
-                                "remainingAttempts",
-                                exception.getRemainingAttempts());
-
-                if (!exception
-                                .getResetStatus()
-                                .isFirstFailure()) {
-                        data.put(
-                                        "pinResetAttemptId",
-                                        exception
-                                                        .getAttemptId()
-                                                        .toString());
-                }
-
-                HttpStatus responseStatus = exception
-                                .getResetStatus()
-                                .isFirstFailure()
-                                                ? HttpStatus.UNAUTHORIZED
-                                                : HttpStatus.LOCKED;
-
-                return ResponseEntity
-                                .status(responseStatus)
-                                .body(
-                                                ApiResponse.error(
-                                                                exception.getMessage(),
-                                                                data));
         }
 
         @ExceptionHandler(DeviceInstallationNotRegisteredException.class)
@@ -98,6 +57,32 @@ public class AuthExceptionHandler {
                                                                                 exception
                                                                                                 .getDeviceLinkStatus()
                                                                                                 .name())));
+        }
+
+        @ExceptionHandler(PinResetAttemptNotFoundException.class)
+        public ResponseEntity<ApiResponse<Object>> handlePinResetAttemptNotFound(
+                        PinResetAttemptNotFoundException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(
+                                                ApiResponse.error(
+                                                                exception.getMessage(),
+                                                                Map.of(
+                                                                                "code",
+                                                                                "PIN_RESET_NOT_AVAILABLE")));
+        }
+
+        @ExceptionHandler(PinResetMobileVerificationException.class)
+        public ResponseEntity<ApiResponse<Object>> handlePinResetMobileVerification(
+                        PinResetMobileVerificationException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.FORBIDDEN)
+                                .body(
+                                                ApiResponse.error(
+                                                                exception.getMessage(),
+                                                                Map.of(
+                                                                                "code",
+                                                                                "PIN_RESET_MOBILE_NOT_VERIFIED")));
         }
 
         @ExceptionHandler(InvalidTokenException.class)

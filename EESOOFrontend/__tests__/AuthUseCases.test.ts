@@ -1,4 +1,7 @@
 import { LoginUserUseCase } from '../src/features/auth/application/login/usecase/LoginUserUseCase';
+import { ConfirmPinResetMobileUseCase } from '../src/features/auth/application/pinReset/usecase/ConfirmPinResetMobileUseCase';
+import { IssuePinResetUseCase } from '../src/features/auth/application/pinReset/usecase/IssuePinResetUseCase';
+import { PinResetApiService } from '../src/features/auth/application/pinReset/interface/PinResetApiService';
 import { AuthApiService } from '../src/features/auth/application/login/interface/AuthApiService';
 import { AuthSessionApiService } from '../src/features/auth/application/session/interface/AuthSessionApiService';
 import { AuthTokenStorage } from '../src/features/auth/application/session/interface/AuthTokenStorage';
@@ -44,12 +47,15 @@ function createSessionApiService() {
 test('login stores tokens and returns only safe login state', async () => {
   const authApiService = {
     login: jest.fn().mockResolvedValue({
-      userId: 'user-1',
-      username: 'known-user',
-      accessToken: 'new-access-token',
-      refreshToken: 'new-refresh-token',
-      deviceLinked: true,
-      deviceLinkFailureReason: null,
+      ok: true,
+      value: {
+        userId: 'user-1',
+        username: 'known-user',
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+        deviceLinked: true,
+        deviceLinkFailureReason: null,
+      },
     }),
   };
   const storedDevice = Device.rehydrate(
@@ -85,15 +91,125 @@ test('login stores tokens and returns only safe login state', async () => {
   });
   expect(tokenStorage.saveTokenPair).toHaveBeenCalledTimes(1);
   expect(result).toEqual({
-    identity: {
-      userId: 'user-1',
-      username: 'known-user',
+    ok: true,
+    value: {
+      identity: {
+        userId: 'user-1',
+        username: 'known-user',
+      },
+      deviceLinked: true,
+      deviceLinkFailureReason: null,
     },
-    deviceLinked: true,
-    deviceLinkFailureReason: null,
   });
-  expect(result).not.toHaveProperty('accessToken');
-  expect(result).not.toHaveProperty('refreshToken');
+  expect(result).not.toHaveProperty('value.accessToken');
+  expect(result).not.toHaveProperty('value.refreshToken');
+});
+
+test('login forwards backend PIN-reset state without storing tokens', async () => {
+  const resetFailure = {
+    reason: 'BACKEND_REJECTION' as const,
+    message: 'PIN reset is available.',
+    httpStatus: 423,
+    code: 'PIN_RESET_AVAILABLE',
+    resetStatus: 'RESET_AVAILABLE' as const,
+    remainingAttempts: 0,
+    pinResetAttemptId: 'attempt-1',
+  };
+  const authApiService = {
+    login: jest.fn().mockResolvedValue({
+      ok: false,
+      error: resetFailure,
+    }),
+  };
+  const storedDevice = Device.rehydrate(
+    'device-1',
+    'install-1',
+    '15',
+    'android',
+    null,
+    true,
+    0,
+    false,
+  );
+  const deviceRepository = {
+    getDevice: jest.fn().mockResolvedValue(storedDevice),
+  };
+  const tokenStorage = createTokenStorage(null);
+  const useCase = new LoginUserUseCase(
+    authApiService as AuthApiService,
+    deviceRepository as unknown as DeviceRepository,
+    tokenStorage as AuthTokenStorage,
+  );
+
+  await expect(
+    useCase.loginUser({
+      phoneNumber: '9876543210',
+      pin: '1234',
+    }),
+  ).resolves.toEqual({
+    ok: false,
+    error: resetFailure,
+  });
+  expect(tokenStorage.saveTokenPair).not.toHaveBeenCalled();
+});
+
+test('PIN-reset use cases reuse the registered installation ID', async () => {
+  const pinResetApiService = {
+    confirmMobile: jest.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        pinResetAttemptId: 'attempt-1',
+        status: 'MOBILE_CONFIRMED',
+        mobileConfirmedAt: '2026-08-10T06:00:00Z',
+      },
+    }),
+    issuePin: jest.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        pinResetAttemptId: 'attempt-1',
+        status: 'PIN_ISSUED',
+        newPin: '0042',
+        pinIssuedAt: '2026-08-10T06:01:00Z',
+      },
+    }),
+  };
+  const storedDevice = Device.rehydrate(
+    'device-1',
+    'install-1',
+    '15',
+    'android',
+    null,
+    true,
+    0,
+    false,
+  );
+  const deviceRepository = {
+    getDevice: jest.fn().mockResolvedValue(storedDevice),
+  };
+  const confirmUseCase = new ConfirmPinResetMobileUseCase(
+    pinResetApiService as PinResetApiService,
+    deviceRepository as unknown as DeviceRepository,
+  );
+  const issueUseCase = new IssuePinResetUseCase(
+    pinResetApiService as PinResetApiService,
+    deviceRepository as unknown as DeviceRepository,
+  );
+
+  await confirmUseCase.execute(
+    'attempt-1',
+    '9876543210',
+  );
+  await issueUseCase.execute('attempt-1');
+
+  expect(pinResetApiService.confirmMobile).toHaveBeenCalledWith({
+    pinResetAttemptId: 'attempt-1',
+    phoneNumber: '9876543210',
+    installId: 'install-1',
+  });
+  expect(pinResetApiService.issuePin).toHaveBeenCalledWith({
+    pinResetAttemptId: 'attempt-1',
+    installId: 'install-1',
+  });
 });
 
 test('session restoration rotates and stores the token pair', async () => {

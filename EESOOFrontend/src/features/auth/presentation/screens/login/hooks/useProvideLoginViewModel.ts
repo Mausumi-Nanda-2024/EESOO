@@ -1,5 +1,9 @@
 import { LoginResult } from '../../../../application/login/model/LoginResult';
-import { loginUserUseCase } from '../../../../infrastructure/config/AuthInfrastructureConfig';
+import {
+  confirmPinResetMobileUseCase,
+  issuePinResetUseCase,
+  loginUserUseCase,
+} from '../../../../infrastructure/config/AuthInfrastructureConfig';
 import { useLoginViewModel } from '../viewModel/LoginViewModelImpl';
 
 export function useProvideLoginViewModel(
@@ -8,6 +12,8 @@ export function useProvideLoginViewModel(
 ) {
   return useLoginViewModel(
     loginUserUseCase,
+    confirmPinResetMobileUseCase,
+    issuePinResetUseCase,
     initialPhoneNumber,
     onLoggedIn,
   );

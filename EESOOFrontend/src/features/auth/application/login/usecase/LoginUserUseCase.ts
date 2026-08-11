@@ -1,4 +1,5 @@
 import { DeviceRepository } from '../../../../shared/device/domain/repository/DeviceRepository';
+import { AuthOperationResult } from '../../common/model/AuthOperationResult';
 import { AuthTokenPair } from '../../../domain/model/valueobject/AuthTokenPair';
 import { LoginCredentials } from '../../../domain/model/valueobject/LoginCredentials';
 import { AuthTokenStorage } from '../../session/interface/AuthTokenStorage';
@@ -18,25 +19,43 @@ export class LoginUserUseCase {
       LoginUserRequestDTO,
       'deviceId' | 'installId'
     >,
-  ): Promise<LoginResult> {
+  ): Promise<AuthOperationResult<LoginResult>> {
     const credentialsResult = LoginCredentials.create(
       rawCredentials.phoneNumber,
       rawCredentials.pin,
     );
 
     if (!credentialsResult.ok) {
-      throw new Error(credentialsResult.message);
+      return {
+        ok: false,
+        error: {
+          reason: 'VALIDATION_FAILURE',
+          message: credentialsResult.message,
+        },
+      };
     }
 
     const credentials = credentialsResult.value;
     const device = await this.deviceRepository.getDevice();
 
     if (!device) {
-      throw new Error('Device is not initialized.');
+      return {
+        ok: false,
+        error: {
+          reason: 'DEVICE_NOT_READY',
+          message: 'Device is not initialized.',
+        },
+      };
     }
 
     if (!device.isStored()) {
-      throw new Error('Device is not ready for login.');
+      return {
+        ok: false,
+        error: {
+          reason: 'DEVICE_NOT_READY',
+          message: 'Device is not ready for login.',
+        },
+      };
     }
 
     const request: LoginUserRequestDTO = {
@@ -46,14 +65,26 @@ export class LoginUserUseCase {
       installId: device.getInstallId(),
     };
 
-    const response = await this.authApiService.login(request);
+    const apiResult = await this.authApiService.login(request);
+
+    if (!apiResult.ok) {
+      return apiResult;
+    }
+
+    const response = apiResult.value;
     const tokenPairResult = AuthTokenPair.create(
       response.accessToken,
       response.refreshToken,
     );
 
     if (!tokenPairResult.ok) {
-      throw new Error(tokenPairResult.message);
+      return {
+        ok: false,
+        error: {
+          reason: 'TEMPORARY_FAILURE',
+          message: tokenPairResult.message,
+        },
+      };
     }
 
     await this.authTokenStorage.saveTokenPair(
@@ -61,13 +92,16 @@ export class LoginUserUseCase {
     );
 
     return {
-      identity: {
-        userId: response.userId,
-        username: response.username,
+      ok: true,
+      value: {
+        identity: {
+          userId: response.userId,
+          username: response.username,
+        },
+        deviceLinked: response.deviceLinked,
+        deviceLinkFailureReason:
+          response.deviceLinkFailureReason,
       },
-      deviceLinked: response.deviceLinked,
-      deviceLinkFailureReason:
-        response.deviceLinkFailureReason,
     };
   }
 }

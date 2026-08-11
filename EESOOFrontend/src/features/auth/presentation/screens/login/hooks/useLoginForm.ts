@@ -24,12 +24,12 @@ export function useLoginForm(initialPhoneNumber = '') {
   }));
 
   useEffect(() => {
-    setForm(previousForm => ({
-      ...previousForm,
+    setForm({
       phoneNumber: formatPhoneNumberInput(
         initialPhoneNumber,
       ),
-    }));
+      pin: '',
+    });
   }, [initialPhoneNumber]);
 
   function updateField(
