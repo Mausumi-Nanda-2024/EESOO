@@ -3,6 +3,8 @@ package com.eesoo.EESOO.user.domain.model.valueobject;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.github.f4b6a3.uuid.UuidCreator;
+
 public final class UserDeviceLinkId {
 
     private final UUID value;
@@ -15,7 +17,9 @@ public final class UserDeviceLinkId {
     }
 
     public static UserDeviceLinkId create() {
-        return new UserDeviceLinkId(UUID.randomUUID());
+        return new UserDeviceLinkId(
+                UuidCreator.getTimeOrderedEpoch()
+        );
     }
 
     public static UserDeviceLinkId of(UUID value) {

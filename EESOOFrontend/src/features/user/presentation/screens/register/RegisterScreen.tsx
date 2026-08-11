@@ -10,14 +10,22 @@ import {
 } from 'react-native';
 import { useRegisterViewModel } from './hooks/useProvideRegisterViewModel';
 import { RegisterViewModel } from './viewModel/RegisterViewModel';
+import { RegisterUserResponseDTO } from '../../../application/register/dto/RegisterUserResponseDTO';
 
 type Props = {
   deviceReady: boolean;
   deviceMessage: string;
+  onRegistered: (response: RegisterUserResponseDTO) => void;
+  onLoginPress?: () => void;
 };
 
-export default function RegisterScreen({ deviceReady, deviceMessage }: Props) {
-  const vm: RegisterViewModel = useRegisterViewModel();
+export default function RegisterScreen({
+  deviceReady,
+  deviceMessage,
+  onRegistered,
+  onLoginPress,
+}: Props) {
+  const vm: RegisterViewModel = useRegisterViewModel(onRegistered);
 
   const [isPinVisible, setIsPinVisible] = useState(false);
   const [isConfirmPinVisible, setIsConfirmPinVisible] = useState(false);
@@ -244,6 +252,18 @@ export default function RegisterScreen({ deviceReady, deviceMessage }: Props) {
               {vm.loading ? 'Creating...' : 'Create Account'}
             </Text>
           </Pressable>
+
+          {onLoginPress ? (
+            <Pressable
+              onPress={onLoginPress}
+              disabled={vm.loading}
+              className="mt-3 items-center px-4 py-2"
+            >
+              <Text className="text-sm font-semibold text-teal-700">
+                Already have an account? Login
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import com.eesoo.EESOO.auth.domain.model.enums.LoginPermission;
 
-public final class AuthUser {
+public class AuthUser {
 
     private final UUID userId;
     private final String username;
@@ -23,5 +23,7 @@ public final class AuthUser {
 
     public UUID getUserId() { return userId; }
     public String getUsername() { return username; }
-    public boolean canLogin() { return loginPermission.isEligible();}
+    public boolean canLogin() {
+        return loginPermission.allowsLogin();
+    }
 }

@@ -1,6 +1,6 @@
 package com.eesoo.EESOO.user.application.device.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import com.eesoo.EESOO.user.application.device.backend_outcome.DeviceRegistrationResult;
 import com.eesoo.EESOO.user.domain.model.entity.DeviceInstall;
@@ -11,7 +11,7 @@ public class StoreDeviceResultDTO {
     private final String installId;
     private final String osVersion;
     private final String platform;
-    private final LocalDateTime registrationTimestamp;
+    private final Instant registrationTimestamp;
     private final DeviceRegistrationResult operationResult;
     private final String deviceIdNullableReason;
 
@@ -20,7 +20,7 @@ public class StoreDeviceResultDTO {
             String installId,
             String osVersion,
             String platform,
-            LocalDateTime registrationTimestamp,
+            Instant registrationTimestamp,
             DeviceRegistrationResult operationResult,
             String deviceIdNullableReason
     ) {
@@ -63,7 +63,7 @@ public class StoreDeviceResultDTO {
         return platform;
     }
 
-    public LocalDateTime getRegistrationTimestamp() {
+    public Instant getRegistrationTimestamp() {
         return registrationTimestamp;
     }
 

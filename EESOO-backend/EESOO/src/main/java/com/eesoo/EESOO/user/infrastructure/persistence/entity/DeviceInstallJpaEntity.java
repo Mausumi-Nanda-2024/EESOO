@@ -1,6 +1,6 @@
 package com.eesoo.EESOO.user.infrastructure.persistence.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -38,10 +38,10 @@ public class DeviceInstallJpaEntity {
     private String deviceIdNullableReason;
 
     @Column(name = "first_seen_at", nullable = false)
-    private LocalDateTime firstSeenAt;
+    private Instant firstSeenAt;
 
     @Column(name = "last_seen_at", nullable = false)
-    private LocalDateTime lastSeenAt;
+    private Instant lastSeenAt;
 
     public DeviceInstallJpaEntity(
             UUID id,
@@ -50,8 +50,8 @@ public class DeviceInstallJpaEntity {
             String osVersion,
             String platform,
             String deviceIdNullableReason,
-            LocalDateTime firstSeenAt,
-            LocalDateTime lastSeenAt
+            Instant firstSeenAt,
+            Instant lastSeenAt
     ) {
         this.id = id;
         this.deviceId = deviceId;

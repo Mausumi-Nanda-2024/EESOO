@@ -12,7 +12,17 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
-        console.error("API Error:",  error?.response?.data || error.message);
+        const status = error?.response?.status;
+        const isUnexpectedError = !status || status >= 500;
+
+        if (isUnexpectedError) {
+            console.error("Unexpected API failure", {
+                method: error?.config?.method,
+                url: error?.config?.url,
+                status,
+            });
+        }
+
         return Promise.reject(error);
     }
 );

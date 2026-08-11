@@ -1,6 +1,6 @@
 package com.eesoo.EESOO.user.infrastructure.persistence.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -35,10 +35,10 @@ public class UserDeviceLinkJpaEntity {
     private String linkedDeviceType;
 
     @Column(name = "linked_at", nullable = false)
-    private LocalDateTime linkedAt;
+    private Instant linkedAt;
 
     @Column(name = "unlinked_at")
-    private LocalDateTime unlinkedAt;
+    private Instant unlinkedAt;
 
     public UserDeviceLinkJpaEntity(
             UUID id,
@@ -46,8 +46,8 @@ public class UserDeviceLinkJpaEntity {
             UUID userId,
             String status,
             String linkedDeviceType,
-            LocalDateTime linkedAt,
-            LocalDateTime unlinkedAt
+            Instant linkedAt,
+            Instant unlinkedAt
     ) {
         this.id = id;
         this.deviceInstallId = deviceInstallId;

@@ -1,7 +1,5 @@
 package com.eesoo.EESOO.user.infrastructure.persistence.mapper;
 
-import java.time.LocalDateTime;
-
 import org.springframework.stereotype.Component;
 
 import com.eesoo.EESOO.user.domain.model.entity.User;
@@ -18,42 +16,31 @@ import com.eesoo.EESOO.user.infrastructure.persistence.entity.UserJpaEntity;
 @Component
 public class UserMapper {
 
-    // Convert domain model -> JPA entity
-
     public UserJpaEntity toEntity(User user) {
-        UserJpaEntity entity = new UserJpaEntity();
-        entity.setId(user.getId().getValue());
-        entity.setFirstName(user.getFirstName().getValue());
-        entity.setLastName(user.getLastName().getValue());
-        entity.setPhoneNumber(user.getPhoneNumber().getValue());
-        entity.setUsername(user.getUsername().getValue());
-        entity.setPin(user.getPin().getValue());
-
-        if (user.getEmail() != null) {
-            entity.setEmail(user.getEmail().getValue());
-        }
-
-        entity.setStatus(user.getStatus());
-        entity.setUserRegisteredAt(user.getUserRegisteredAt());
-
-        
-
-        return entity;
+        return new UserJpaEntity(
+                user.getId().getValue(),
+                user.getUsername().getValue(),
+                user.getFirstName().getValue(),
+                user.getLastName().getValue(),
+                user.getPin().getValue(),
+                user.getEmail() != null ? user.getEmail().getValue() : null,
+                user.getPhoneNumber().getValue(),
+                user.getStatus().name(),
+                user.getUserRegisteredAt()
+        );
     }
 
-    // Convert JPA entity -> domain model
     public User toDomain(UserJpaEntity entity) {
-        
-        UserId userId = UserId.fromString(entity.getId().toString());
-        Username username = Username.of(entity.getUsername());
-        FirstName firstName = FirstName.of(entity.getFirstName());
-        LastName lastName = LastName.of(entity.getLastName());
-        Pin password = Pin.fromHashed(entity.getPin());
-        Email email = entity.getEmail() != null ? Email.of(entity.getEmail()) : null;
-        PhoneNumber phoneNumber = PhoneNumber.of(entity.getPhoneNumber());
-        LocalDateTime registeredAt = entity.getUserRegisteredAt();
-        UserStatus status = (entity.getStatus());
-
-        return User.rehydrate(userId, username, firstName, lastName, password, email, phoneNumber, registeredAt, status);
+        return User.rehydrate(
+                UserId.fromString(entity.getId().toString()),
+                Username.of(entity.getUsername()),
+                FirstName.of(entity.getFirstName()),
+                LastName.of(entity.getLastName()),
+                Pin.fromHashed(entity.getPin()),
+                entity.getEmail() != null ? Email.of(entity.getEmail()) : null,
+                PhoneNumber.of(entity.getPhoneNumber()),
+                entity.getUserRegisteredAt(),
+                UserStatus.valueOf(entity.getStatus())
+        );
     }
 }

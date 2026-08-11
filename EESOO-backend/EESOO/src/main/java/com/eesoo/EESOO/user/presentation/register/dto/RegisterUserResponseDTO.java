@@ -1,6 +1,6 @@
 package com.eesoo.EESOO.user.presentation.register.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,7 +16,7 @@ public class RegisterUserResponseDTO {
     private String phoneNumber;
     private String email;
     private String status;
-    private LocalDateTime userRegisteredAt;
+    private Instant userRegisteredAt;
 
     
 

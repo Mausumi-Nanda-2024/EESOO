@@ -3,10 +3,12 @@ import { useRegisterForm } from "../hooks/useRegisterForm";
 import { RegisterErrors } from "../models/RegisterFormModel";
 import { RegisterViewModel } from "./RegisterViewModel";
 import { RegisterUserUseCase } from "../../../../application/register/usecase/RegisterUserUseCase";
+import { RegisterUserResponseDTO } from "../../../../application/register/dto/RegisterUserResponseDTO";
 
 
 export function useRegisterViewModel(
-  registerUserUseCase: RegisterUserUseCase
+  registerUserUseCase: RegisterUserUseCase,
+  onRegistered?: (response: RegisterUserResponseDTO) => void
 ): RegisterViewModel {
 
   // form + live UI filtering handled here
@@ -71,6 +73,7 @@ export function useRegisterViewModel(
 
     // success case
     setLoading(false);
+    onRegistered?.(result.data);
   }
 
   return {

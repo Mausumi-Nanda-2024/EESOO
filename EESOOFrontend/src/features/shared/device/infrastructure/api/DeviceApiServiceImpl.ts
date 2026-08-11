@@ -41,8 +41,6 @@ export class DeviceApiServiceImpl implements DeviceApiService {
         try {
             const response = await axiosInstance.post<{ status: string; message: string; data: CheckDeviceLinkHttpResponseDTO }>(this.CHECK_LINK_ENDPOINT, httpRequest);
 
-            console.log("Raw API Response:", response.data);
-
             return CheckDeviceLinkHttpMapper.toResponse(response.data.data);
         } catch (error: any) {
             const message = error?.response?.data?.message || "Device check failed";

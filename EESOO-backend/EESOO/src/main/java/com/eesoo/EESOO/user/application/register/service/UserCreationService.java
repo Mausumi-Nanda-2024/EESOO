@@ -19,7 +19,7 @@ import com.eesoo.EESOO.user.domain.model.valueobject.UserId;
 import com.eesoo.EESOO.user.domain.model.valueobject.Username;
 import com.eesoo.EESOO.user.domain.repository.UserRepository;
 import com.eesoo.EESOO.user.domain.service.PinEncoder;
-import com.eesoo.EESOO.user.domain.service.TimeProvider;
+import com.eesoo.EESOO.shared.domain.time.TimeProvider;
 import com.eesoo.EESOO.user.domain.service.UsernameGenerator;
 
 @Service
