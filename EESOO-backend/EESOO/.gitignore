@@ -41,5 +41,3 @@ build/
 *.log
 logs/
 
-# Local application config
-src/main/resources/application.properties
