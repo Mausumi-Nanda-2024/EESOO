@@ -290,9 +290,7 @@ public class LoginCommandHandler
                     );
 
             log.info(
-                    "Login device-link result. userId={}, deviceInstallId={}, status={}",
-                    authUser.getUserId(),
-                    deviceInstallId,
+                    "Login device-link completed. status={}",
                     linkStatus
             );
 
@@ -300,10 +298,7 @@ public class LoginCommandHandler
 
         } catch (RuntimeException exception) {
             log.error(
-                    "Unexpected device-linking failure. userId={}, deviceInstallId={}, deviceId={}",
-                    authUser.getUserId(),
-                    deviceInstallId,
-                    deviceId,
+                    "Unexpected device-linking failure.",
                     exception
             );
 

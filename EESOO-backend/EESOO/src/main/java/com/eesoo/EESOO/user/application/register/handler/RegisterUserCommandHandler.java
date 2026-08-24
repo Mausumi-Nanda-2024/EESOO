@@ -49,19 +49,13 @@ public class RegisterUserCommandHandler implements CommandHandler<RegisterUserCo
                         .orElse("UNKNOWN_REASON");
 
                 log.warn(
-                        "Device linking not completed during registration. userId={}, installId={}, deviceId={}, reason={}",
-                        user.getId(),
-                        command.getInstallId(),
-                        command.getDeviceId(),
+                        "Device linking not completed during registration. reason={}",
                         reason
                 );
             }
         } catch (RuntimeException ex) {
             log.error(
-                    "Device linking failed during registration. userId={}, installId={}, deviceId={}",
-                    user.getId(),
-                    command.getInstallId(),
-                    command.getDeviceId(),
+                    "Device linking failed during registration.",
                     ex
             );
         }
