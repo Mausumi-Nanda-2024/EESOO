@@ -2,6 +2,7 @@ package com.eesoo.EESOO.auth.presentation.login.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,10 +32,12 @@ public class LoginUserRequestDTO {
     )
     private String pin;
 
+    @Size(max = 100, message = "Device ID must not exceed 100 characters")
     private String deviceId;
 
     @NotBlank(
             message = "Install ID is required"
     )
+    @Size(max = 100, message = "Install ID must not exceed 100 characters")
     private String installId;
 }

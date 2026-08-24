@@ -6,33 +6,31 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@EnableConfigurationProperties(CorsProperties.class)
+@EnableConfigurationProperties({CorsProperties.class, RateLimitProperties.class})
 public class web_config implements WebMvcConfigurer {
 
-    private final CorsProperties corsProperties;
+        private final CorsProperties corsProperties;
 
-    public web_config(
-            CorsProperties corsProperties) {
-        this.corsProperties = corsProperties;
-    }
+        public web_config(
+                        CorsProperties corsProperties) {
+                this.corsProperties = corsProperties;
+        }
 
-    @Override
-    public void addCorsMappings(
-            CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins(
-                        corsProperties
-                                .getAllowedOrigins()
-                                .toArray(String[]::new))
-                .allowedMethods(
-                        "GET",
-                        "POST",
-                        "PUT",
-                        "PATCH",
-                        "DELETE",
-                        "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(false)
-                .maxAge(3600);
-    }
+        @Override
+        public void addCorsMappings(
+                        CorsRegistry registry) {
+                registry.addMapping("/**")
+                                .allowedOrigins(
+                                                corsProperties
+                                                                .getAllowedOrigins()
+                                                                .toArray(String[]::new))
+                                .allowedMethods(
+                                                "GET",
+                                                "POST",
+                                                "DELETE",
+                                                "OPTIONS")
+                                .allowedHeaders("*")
+                                .allowCredentials(false)
+                                .maxAge(3600);
+        }
 }
